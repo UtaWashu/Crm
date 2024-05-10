@@ -1,0 +1,29 @@
+﻿<!DOCTYPE html>
+<html lang="rus">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - CRM</title>
+</head>
+
+<body>
+    @*     <header>
+    </header> *@
+    <partial name="Partial/_SideBar" />
+
+    @* <main> *@
+        <div class="container">
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
+        </div>
+    @* </main> *@
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2024 - CrmSystem - <a asp-area="" asp-controller="Home" asp-action="Index">Privacy</a>
+        </div>
+    </footer>
+    <partial name="Partial/_Scripts" />
+</body>
+</html>

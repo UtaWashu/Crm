@@ -1,0 +1,81 @@
+﻿@model dynamic
+<a class="btn btn-primary" asp-controller="Waiter" asp-action="Index">Информация о заказах</a>
+<a class="btn btn-primary" asp-controller="Waiter" asp-action="CreateOrder">Заказы</a>
+<a class="btn btn-primary" asp-controller="Home" asp-action="Login">Логин страница</a>
+<h2>Чек заказа</h2>
+
+<h3>Официант: @Model.EmployeeName</h3>
+<h3>Дата заказа: @Model.OrderDate</h3>
+<h3>Общая стоимость заказа: @Model.TotalCost</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Название блюда</th>
+            <th>Количество</th>
+            <th>Стоимость</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var dish in Model.Dishes)
+        {
+            <tr>
+                <td>@dish.DishName</td>
+                <td>@dish.Quantity</td>
+                <td>@dish.Cost</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #ddd;
+    }
+
+    .btn {
+        margin: 10px;
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        border-radius: 5px;
+    }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+    .form-group {
+        margin-bottom: 10px;
+    }
+
+    .text-danger {
+        color: red;
+    }
+
+</style>

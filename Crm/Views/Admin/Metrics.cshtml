@@ -1,0 +1,313 @@
+﻿@{
+    Layout = "";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Revenue Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .green-row {
+            background-color: lightgreen;
+        }
+
+        .yellow-row {
+            background-color: yellow;
+        }
+
+        .red-row {
+            background-color: lightcoral;
+        }
+
+        table {
+            width: 95%;
+            margin-right: 30px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: lightblue;
+        }
+
+        .up-container {
+            width: 100%;
+            height: 80px;
+            background: blue;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .left-container {
+            height: calc(100vh - 120px);
+            margin-top: 40px;
+            width: 200px;
+            background: blue;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 5px;
+        }
+
+            .btn:hover {
+                background-color: #45a049;
+            }
+
+        .test {
+            margin-left: 250px;
+            margin-top: -85vh;
+            overflow-y: auto;
+            height: calc(100vh - 130px);
+        }
+
+        .chart-container {
+            display: flex;
+
+        }
+
+        canvas {
+            margin: 10px;
+        }
+
+        .test1 {
+            width: 750px;
+            height: 350px;
+        }
+
+        .test2 {
+            width: 450px;
+            height: 450px;
+        }
+
+        .date {
+            margin-left: 290px;
+        }
+
+        input[type="date"] {
+            padding: 10px;
+            width: 200px;
+            height: 20px;
+            margin-left: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="up-container">
+        <div class="date">
+        <input type="date" id="start" name="start">
+        <input type="date" id="end" name="end">
+            <button class="btn btn-primary" onclick="generateData()">Фильтр</button>
+        </div>
+    </div>
+
+    <div class="left-container">
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="EmployeesTable">Сотрудники</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="EmployeeDiagramm">Статистика сотрудников</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Storages">Склад</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Invoice">Накладные</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Dishes">Меню</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Orders">Заказы</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Metrics">Аналитика</a>
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Login">Логин страница</a>
+    </div>
+    <div class="test">
+        <table id="abcTable">
+            <thead>
+                <tr>
+                    <th>Блюдо</th>
+                    <th>Категория</th>
+                    <th>Выручка</th>
+                    <th>Прибыль</th>
+                    <th>Количество продаж</th>
+                    <th>Выручка (%)</th>
+                    <th>Прибыль (%)</th>
+                    <th>Кол-во продаж (%)</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <div class="chart-container">
+            <div style="margin-top: 0px;">
+                <h2>Выручка</h2>
+                    <p style ="margin-bottom: 83px;">
+                        </p>
+                <canvas id="revenueChart" class="test1"></canvas>
+            </div>
+            <div>
+                <h2>Топ блюд</h2>
+                <canvas id="topDishesChart" class="test2"></canvas>
+            </div>
+        </div>
+
+
+        <script>
+            async function generateData() {
+                const start = document.getElementById('start').value;
+                const end = document.getElementById('end').value;
+                await getAbcAnalysis(start, end);
+                getRevenueData(start, end);
+            }
+
+            async function getAbcAnalysis(start, end) {
+                const response = await fetch(`/Admin/AbcAnalysis?startDate=${start}&endDate=${end}`);
+                const data = await response.json();
+
+                const table = document.getElementById('abcTable').getElementsByTagName('tbody')[0];
+                table.innerHTML = '';
+
+                let totalIncome = data.reduce((sum, row) => sum + row.income, 0);
+                let totalRevenue = data.reduce((sum, row) => sum + row.revenue, 0);
+                let totalSalesCount = data.reduce((sum, row) => sum + row.salesCount, 0);
+
+                data.forEach(row => {
+                    const newRow = table.insertRow();
+
+                    const dishTitleCell = newRow.insertCell();
+                    dishTitleCell.textContent = row.dishTitle;
+
+                    const categoryCell = newRow.insertCell();
+                    categoryCell.textContent = row.category;
+
+                    const incomeCell = newRow.insertCell();
+                    incomeCell.textContent = row.income;
+
+                    const revenueCell = newRow.insertCell();
+                    revenueCell.textContent = row.revenue;
+
+                    const salesCountCell = newRow.insertCell();
+                    salesCountCell.textContent = row.salesCount;
+
+                    const incomePercentCell = newRow.insertCell();
+                    let incomePercent = (row.income / totalIncome) * 100;
+                    incomePercentCell.textContent = incomePercent.toFixed(2);
+                    if (incomePercent >= 50) {
+                        incomePercentCell.classList.add('green-row');
+                        incomePercentCell.textContent += "% (A)";
+                    } else if (incomePercent >= 20) {
+                        incomePercentCell.classList.add('yellow-row');
+                        incomePercentCell.textContent += "% (B)";
+                    } else {
+                        incomePercentCell.classList.add('red-row');
+                        incomePercentCell.textContent += "% (C)";
+                    }
+
+                    const revenuePercentCell = newRow.insertCell();
+                    let revenuePercent = (row.revenue / totalRevenue) * 100;
+                    revenuePercentCell.textContent = revenuePercent.toFixed(2);
+                    if (revenuePercent >= 50) {
+                        revenuePercentCell.classList.add('green-row');
+                        revenuePercentCell.textContent += "% (A)";
+                    } else if (revenuePercent >= 20) {
+                        revenuePercentCell.classList.add('yellow-row');
+                        revenuePercentCell.textContent += "% (B)";
+                    } else {
+                        revenuePercentCell.classList.add('red-row');
+                        revenuePercentCell.textContent += "% (C)";
+                    }
+
+                    const salesCountPercentCell = newRow.insertCell();
+                    let salesCountPercent = (row.salesCount / totalSalesCount) * 100;
+                    salesCountPercentCell.textContent = salesCountPercent.toFixed(2);
+                    if (salesCountPercent >= 50) {
+                        salesCountPercentCell.classList.add('green-row');
+                        salesCountPercentCell.textContent += "% (A)";
+                    } else if (salesCountPercent >= 20) {
+                        salesCountPercentCell.classList.add('yellow-row');
+                        salesCountPercentCell.textContent += "% (B)";
+                    } else {
+                        salesCountPercentCell.classList.add('red-row');
+                        salesCountPercentCell.textContent += "% (C)";
+                    }
+
+                });
+            }
+
+            async function getRevenueData(start, end) {
+                const response = await fetch(`/Admin/GetRevenueDataByDate?startDate=${start}&endDate=${end}`);
+                const data = await response.json();
+
+                const labels = data.map(d => d.date.split('T')[0]);
+                const revenue = data.map(d => d.total);
+
+                var ctx = document.getElementById('revenueChart').getContext('2d');
+                var chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Выручка',
+                            backgroundColor: 'blue',
+                            data: revenue
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            fetch("/Admin/GetTopOrderedDishes")
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(d => d.dishTitle);
+                    const values = data.map(d => d.orderedCount);
+
+                    const ctx = document.getElementById('topDishesChart').getContext('2d');
+                    const topDishesChart = new Chart(ctx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Выручка',
+                                data: values,
+                                backgroundColor: [
+                                    'rgba(255, 99, 132, 0.2)',
+                                    'rgba(54, 162, 235, 0.2)',
+                                    'rgba(255, 206, 86, 0.2)',
+                                    'rgba(75, 192, 192, 0.2)',
+                                    'rgba(153, 102, 255, 0.2)'
+                                ],
+                                borderColor: [
+                                    'rgba(255, 99, 132, 1)',
+                                    'rgba(54, 162, 235, 1)',
+                                    'rgba(255, 206, 86, 1)',
+                                    'rgba(75, 192, 192, 1)',
+                                    'rgba(153, 102, 255, 1)'
+                                ],
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                });
+        </script>
+</body>
+</html>

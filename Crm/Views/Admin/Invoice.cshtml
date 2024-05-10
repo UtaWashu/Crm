@@ -1,0 +1,215 @@
+﻿@{
+    Layout = "";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Grouped Invoices</title>
+    <style>
+        .invoice-container {
+            display: inline-block;
+            margin-right: 30px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 200px;
+        }
+
+        .invoice-details {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            width: 25%;
+            position: relative;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        .up-container {
+            width: 100%;
+            height: 90px;
+            background: blue;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        .left-container {
+            height: calc(100vh - 130px);
+            margin-top: 40px;
+            width: 200px;
+            background: blue;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 5px;
+        }
+
+            .btn:hover {
+                background-color: #45a049;
+            }
+
+        .test {
+            margin-left: 300px;
+            margin-top: -85vh;
+            overflow-y: auto;
+            height: calc(100vh - 130px);
+        }
+
+
+    </style>
+</head>
+<body>
+    <div class="up-container">
+        <button class="btn btn-primary" id="openModal">Добавить накладную</button>
+    </div>
+
+    <div class="left-container">
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="EmployeesTable">Сотрудники</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="EmployeeDiagramm">Статистика сотрудников</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Storages">Склад</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Invoice">Накладные</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Dishes">Меню</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Orders">Заказы</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Metrics">Аналитика</a>
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Login">Логин страница</a>
+    </div>
+
+    <div class="test">
+    @foreach (var group in Model)
+    {
+        <div class="invoice-container">
+            <div>
+                <strong>поставщик:</strong> @group.Key.Initials
+            </div>
+            <div>
+                <strong>Дата:</strong> @group.Key.Date.ToShortDateString()
+            </div>
+            <div class="invoice-details">
+                <table>
+                    <tr>
+                        <th>Продукт</th>
+                        <th>Количество</th>
+                    </tr>
+                    @foreach (var invoice in group)
+                    {
+                        <tr>
+                            <td>@invoice.Product.Title</td>
+                            <td>@invoice.Quantity</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+    }
+
+    
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <form method="post" action="/Admin/AddMultipleData">
+                <label for="providerInitials">Поставщик:</label>
+                <select id="providerInitials" name="providerInitials" required>
+                    <option value="">Выберите поставщика</option>
+                    @foreach (var provider in ViewBag.Providers)
+                    {
+                        <option value="@provider.Initials">@provider.Initials</option>
+                    }
+                </select><br><br>
+
+                <label for="deliveryDate">Дата поставки:</label>
+                <input type="date" id="deliveryDate" name="deliveryDate" required><br><br>
+
+                <div id="products">
+                    <div class="product">
+                        <label for="productTitle">Продукт:</label>
+                        <input type="text" name="productTitles" required><br><br>
+
+                        <label for="quantity">Количество:</label>
+                        <input type="number" name="quantities" required><br><br>
+                    </div>
+                </div>
+
+                <button type="button" id="addProductButton">Добавить продукт</button><br><br>
+
+                <button type="submit">Добавить данные</button>
+            </form>
+        </div>
+    </div>
+    </div>
+    
+
+    <script>
+        document.getElementById('addProductButton').addEventListener('click', () => {
+            const products = document.getElementById('products');
+            const product = document.querySelector('.product').cloneNode(true);
+            products.appendChild(product);
+        });
+
+        document.querySelectorAll('.invoice-container').forEach(item => {
+            item.addEventListener('click', () => {
+                if (item.querySelector('.invoice-details').style.display === 'none') {
+                    item.querySelector('.invoice-details').style.display = 'block';
+                } else {
+                    item.querySelector('.invoice-details').style.display = 'none';
+                }
+            });
+        });
+
+        document.getElementById('openModal').addEventListener('click', () => {
+            document.getElementById('modal').style.display = 'block';
+        });
+
+        document.querySelector('.modal').addEventListener('click', (event) => {
+            if (event.target === document.querySelector('.modal')) {
+                document.getElementById('modal').style.display = 'none';
+            }
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                document.getElementById('modal').style.display = 'none';
+            }
+        });
+
+    </script>
+
+</body>
+</html>

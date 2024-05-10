@@ -1,0 +1,62 @@
+﻿@{
+    Layout = "";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Website</title>
+    <style>
+        .up-container {
+            width: 100%;
+            height: 80px;
+            background: blue;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .left-container {
+            height: calc(100vh - 120px);
+            margin-top: 40px;
+            width: 200px;
+            background: blue;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 5px;
+        }
+
+            .btn:hover {
+                background-color: #45a049;
+            }
+
+    </style>
+</head>
+<body>
+    <div class="up-container">
+    </div>
+
+    <div class="left-container">
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="EmployeesTable">Сотрудники</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="EmployeeDiagramm">Статистика сотрудников</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Storages">Склад</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Invoice">Накладные</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Dishes">Меню</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Orders">Заказы</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Metrics">Аналитика</a>
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Login">Логин страница</a>
+    </div>
+</body>
+</html>

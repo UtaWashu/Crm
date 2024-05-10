@@ -1,0 +1,278 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Order</title>
+    <script>
+        var activeOrderId; // Variable to hold the currently active order ID
+
+        function openModal(orderId) {
+            var modal = document.getElementById("myModal");
+            modal.style.display = "block";
+
+            activeOrderId = orderId; // Set the active order ID
+        }
+
+
+        function addDishToOrder() {
+            var dishId = document.getElementById('dishSelect').value;
+            var quantity = document.getElementById('quantityInput').value;
+
+            fetch(`/Waiter/AddDishToOrder?orderId=${activeOrderId}&dishId=${dishId}&quantity=${quantity}`, {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Dish added to order successfully");
+                    } else {
+                        alert("Failed to add dish to order");
+                    }
+                });
+
+            closeModal();
+        }
+
+        function displayOrderInfo(orderId) {
+            document.getElementById("orderInfo").innerHTML = "";
+
+            fetch("/Waiter/GetOrderInfo?orderId=" + orderId)
+                .then(response => response.json())
+                .then(data => {
+                    let orderInfoContent = `
+                            <p>Официант: ${data.employeeName}</p>
+                            <p>Клиент: ${data.clientName}</p>
+                            <p>Сумма: ${data.total}</p>
+                            <p>Количество человек: ${data.peopleCount}</p>
+                            <p>Номер стола: ${data.tableNumber}</p>
+                            <p>Заказ:</p>
+                            <ul>`;
+
+                    data.dishes.forEach(dish => {
+                        orderInfoContent += `<li>${ dish.dishName } - Quantity: ${ dish.quantity }
+                        <button onclick="updateDishQuantity('${orderId}','${dish.dishId}', ${dish.quantity + 1})" >+</button>
+                        <button onclick = "updateDishQuantity('${orderId}','${dish.dishId}',${dish.quantity - 1})" > -</button>
+                        <button onclick = "removeDishFromOrder('${orderId}','${dish.dishId}')">Удалить</button></li>`;
+                    });
+                    orderInfoContent += `</ul>`;
+
+
+
+                    orderInfoContent += `<button onclick="payOrder('${orderId}')">Оплатить</button>`;
+                    orderInfoContent += `<button onclick="cancelOrder('${orderId}')">Оменить</button>`;
+                    document.getElementById("orderInfo").innerHTML = orderInfoContent;
+                });
+        }
+
+        function payOrder(orderId) {
+            fetch(`/Waiter/PayOrder?orderId=${orderId}`, {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Order successfully paid");
+                    } else {
+                        alert("Failed to pay order");
+                    }
+                });
+        }
+
+        function cancelOrder(orderId) {
+            fetch(`/Waiter/CancelOrder?orderId=${orderId}`, {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Order successfully canceled");
+                    } else {
+                        alert("Failed to cancel order");
+                    }
+                });
+        }
+
+        function openCreateOrderModal() {
+            var modal = document.getElementById("modalCreateOrder");
+            modal.style.display = "block";
+        }
+
+        function closeCreateOrderModal() {
+            var modal = document.getElementById("modalCreateOrder");
+            modal.style.display = "none";
+        }
+               function updateDishQuantity(orderId, dishId, quantity) {
+            fetch(`/Waiter/UpdateDishQuantity?orderId=${orderId}&dishId=${dishId}&quantity=${quantity}`, {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Dish quantity updated successfully");
+                        displayOrderInfo(orderId); 
+                    } else {
+                        alert("Failed to update dish quantity");
+                    }
+                });
+        }
+
+
+        function removeDishFromOrder(orderId, dishId) {
+            fetch(`/Waiter/RemoveDishFromOrder?orderId=${orderId}&dishId=${dishId}`, {
+                method: 'POST'
+            })
+                .then(response => {
+                    if (response.ok) {
+                        alert("Dish removed from order successfully");
+                        displayOrderInfo(orderId); 
+                    } else {
+                        alert("Failed to remove dish from order");
+                    }
+                });
+        }
+
+    </script>
+    <style>
+        #orderInfo {
+            border: 1px solid black;
+            padding: 10px;
+            margin-top: 10px;
+
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+
+        .btn {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 5px;
+        }
+
+            .btn:hover {
+                background-color: #45a049;
+            }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .text-danger {
+            color: red;
+        }
+
+    </style>
+</head>
+<body>
+    <a class="btn btn-primary" asp-controller="Waiter" asp-action="Index">Заказы</a>
+    <a class="btn btn-primary" asp-controller="Waiter" asp-action="Create">Добавить клиента</a>
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Login">Логин страница</a>
+    <button onclick="openCreateOrderModal()">+</button>
+
+    @foreach (var order in ViewBag.Orders)
+    {
+        <button type="button" onclick="displayOrderInfo('@order.Id'); openModal('@order.Id');">Guest @(ViewBag.Orders.IndexOf(order) + 1)</button>
+
+    }
+
+    <div id="myModal">
+        <select id="categorySelect">
+            @foreach (var category in ViewBag.Categories)
+            {
+                <option value="@category.Id">@category.Title</option>
+            }
+        </select>
+
+        <select id="dishSelect">
+            <!-- Dishes will be populated dynamically based on selected category -->
+        </select>
+
+        <input type="number" id="quantityInput" placeholder="Quantity">
+        <button onclick="addDishToOrder()">Add Dish</button>
+        <button onclick="closeModal()">Close</button>
+    </div>
+    <div id="orderInfo"></div>
+
+    <div id="modalCreateOrder" style="display: none;">
+        <form method="post" action="/Waiter/CreateOrder">
+            <label for="employee">Employee:</label>
+            <select name="employee" id="employee">
+                @foreach (var employee in ViewBag.Employees)
+                {
+                    <option value="@employee.Id">@employee.Initials</option>
+                }
+            </select>
+            <br>
+            <label for="client">Client:</label>
+            <select name="client" id="client">
+                @foreach (var client in ViewBag.Clients)
+                {
+                    <option value="@client.Id">@client.Initials</option>
+                }
+            </select>
+            <br>
+            <label for="total">Total:</label>
+            <input type="number" name="total" id="total">
+            <br>
+            <label for="peopleCount">People Count:</label>
+            <input type="number" name="peopleCount" id="peopleCount">
+            <br>
+            <label for="tableNumber">Table Number:</label>
+            <input type="number" name="tableNumber" id="tableNumber">
+            <br>
+            <label for="paymentId">Payment Id:</label>
+            <input type="number" name="paymentId" id="paymentId">
+            <br>
+            <input type="submit" value="Create Order">
+        </form>
+        <button onclick="closeCreateOrderModal()">Close</button>
+
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#categorySelect').on('change', function () {
+                var categoryId = $(this).val();
+                $.ajax({
+                    url: `/Waiter/GetDishesByCategory?categoryId=${categoryId}`,
+                    method: 'GET',
+                    success: function (data) {
+                        $('#dishSelect').empty();
+                        data.forEach(function (dish) {
+                            $('#dishSelect').append(`<option value="${dish.id}">${dish.title}</option>`);
+                        });
+                    },
+                    error: function () {
+                        console.error('Failed to get dishes by category');
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>

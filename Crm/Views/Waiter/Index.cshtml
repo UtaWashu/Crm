@@ -1,0 +1,109 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+
+        .date {
+            margin-left: 290px;
+        }
+
+        input[type="date"] {
+            padding: 10px;
+            width: 200px;
+            height: 35px;
+            margin-left: 30px;
+        }
+
+        .btn {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 5px;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+    </style>
+</head>
+<body>
+    <a class="btn btn-primary" asp-controller="Waiter" asp-action="Create">Добавить клиента</a>
+    <a class="btn btn-primary" asp-controller="Waiter" asp-action="CreateOrder">Заказы</a>
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Login">Логин страница</a>
+    <div class="date">
+        <form method="get">
+            <input type="date" id="startDate" name="startDate" required>
+            <input type="date" id="endDate" name="endDate" required>
+            <button class="btn btn-primary" type="submit">Фильтр</button>
+        </form>
+    </div>
+    <div class="test">
+        @if (Model != null && Model.Count > 0)
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Идентификатор заказа</th>
+                        <th>Имя сотрудника</th>
+                        <th>Имя клиента</th>
+                        <th>Общая сумма</th>
+                        <th>Дата</th>
+                        <th>Статус заказа</th>
+                        <th>Вид оплаты</th>
+                        <th>Номер стола</th>
+                        <th>Количество человек</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>@order.Id</td>
+                            <td>@order.Employee.Initials</td>
+                            <td>@order.Client.Initials</td>
+                            <td>@order.Total</td>
+                            <td>@order.Date.ToLocalTime()</td>
+                            <td>@order.OrderStatus.Name</td>
+                            <td>@order.Payment.Title</td>
+                            <td>@order.TableNumber</td>
+                            <td>@order.PeopleCount</td>
+                            <td><a class="btn btn-primary" asp-controller="Waiter" asp-action="Check" asp-route-orderId="@order.Id">Получить чек</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</body>
+</html>

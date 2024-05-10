@@ -1,0 +1,290 @@
+﻿@{
+    Layout = "";
+}
+
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #f2f2f2;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 6px;
+        box-sizing: border-box;
+    }
+
+    .search {
+        display: flex;
+        margin-bottom: 10px;
+        width: 80%;
+        margin-left: 230px;
+    }
+
+        .search input {
+            flex: 1;
+            margin-right: 10px;
+            padding: 6px;
+            box-sizing: border-box;
+            margin-top: 25px;
+        }
+
+    #modal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+        z-index: 9999;
+    }
+
+    .up-container {
+        width: 100%;
+        height: 80px;
+        background: blue;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .left-container {
+        height: calc(100vh - 120px);
+        margin-top: 40px;
+        width: 200px;
+        background: blue;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .btn {
+        margin: 10px;
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        border-radius: 5px;
+    }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+    .test {
+        margin-left: 220px;
+        margin-top: -85vh;
+        width: 85%;
+    }
+
+    #addModal {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #fff;
+        padding: 20px;
+        border: 1px solid #ccc;
+        z-index: 9999;
+    }
+
+</style>
+
+<script>
+    function searchTable(columnIndex) {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchInput" + columnIndex);
+        filter = input.value.toUpperCase();
+        table = document.getElementById("dishesTable");
+        tr = table.getElementsByTagName("tr");
+        for (i = 1; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[columnIndex];
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function showHoverModal(content, button) {
+        var modal = document.getElementById('modal');
+        var modalContent = document.getElementById('modalContent');
+        modalContent.innerText = content;
+
+        var buttonRect = button.getBoundingClientRect();
+        modal.style.top = buttonRect.top + buttonRect.height + 10 + "px";
+        modal.style.left = buttonRect.left + "px";
+
+        modal.style.display = 'block';
+
+        modal.onmouseenter = function () {
+            modal.style.display = 'block';
+        }
+
+        modal.onmouseleave = function () {
+            closeModal();
+        }
+
+        button.onmouseleave = function () {
+            closeModal();
+        }
+    }
+
+
+    function closeModal() {
+        var modal = document.getElementById('modal');
+        modal.style.display = 'none';
+    }
+</script>
+
+<div class="up-container">
+    <div style="margin-left: 200px;"></div>
+    <div class="search">
+        <input type="text" id="searchInput0" onkeyup="searchTable(0)" placeholder="Поиск по названию...">
+        <input type="text" id="searchInput1" onkeyup="searchTable(1)" placeholder="Поиск по категории...">
+        <input type="text" id="searchInput3" onkeyup="searchTable(3)" placeholder="Поиск по стоимости...">
+    </div>
+</div>
+
+<div class="left-container">
+    <a class="btn btn-primary" asp-controller="Admin" asp-action="EmployeesTable">Сотрудники</a>
+    <a class="btn btn-primary" asp-controller="Admin" asp-action="EmployeeDiagramm">Статистика сотрудников</a>
+    <a class="btn btn-primary" asp-controller="Admin" asp-action="Storages">Склад</a>
+    <a class="btn btn-primary" asp-controller="Admin" asp-action="Invoice">Накладные</a>
+    <a class="btn btn-primary" asp-controller="Admin" asp-action="Dishes">Меню</a>
+    <a class="btn btn-primary" asp-controller="Admin" asp-action="Orders">Заказы</a>
+    <a class="btn btn-primary" asp-controller="Admin" asp-action="Metrics">Аналитика</a>
+    <a class="btn btn-primary" asp-controller="Home" asp-action="Login">Логин страница</a>
+</div>
+<div class="test">
+    <button onclick="document.getElementById('addModal').style.display = 'block'">Открыть модальное окно добавления</button>
+
+    <table id="dishesTable">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Категория</th>
+                <th>Себестоимость</th>
+                <th>Стоимость</th>
+                <th>Описание</th>
+                <th>Рецепт</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var dish in Model)
+            {
+                <tr>
+                    <td>@dish.Title</td>
+                    <td>@dish.Category.Title</td>
+                    <td>@dish.PrimeCost</td>
+                    <td>@dish.Cost</td>
+                    <td><p onmouseover="showHoverModal('@dish.Description', this)">Показать</p></td>
+                    <td><p onmouseover="showHoverModal('@dish.Recipe', this)">Показать</p></td>
+                    <td>
+                        <form action="/Admin/DeleteDish" method="post">
+                            <input type="hidden" name="id" value="@dish.Id" />
+                            <button type="submit">Удалить</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div id="modal">
+        <div id="modalContent"></div>
+    </div>
+
+    <div id="addModal" style="display: none;">
+        <div id="modalContent"></div>
+        <form id="addDishForm" method="post" action="/Admin/AddDish">
+            <input type="text" name="Title" placeholder="Название">
+            <select name="CategoryId">
+                @foreach (var category in ViewBag.Categories)
+                {
+                    <option value="@category.Id">@category.Title</option>
+                }
+            </select>
+            @Html.ValidationMessage("Category.Id")
+            <input type="text" name="PrimeCost" placeholder="Себестоимость">
+            <input type="text" name="Cost" placeholder="Стоимость">
+            <input type="text" name="Description" placeholder="Описание">
+            <input type="text" name="Recipe" placeholder="Рецепт">
+            <button type="submit">Добавить блюдо</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function searchTable(columnIndex) {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("searchInput" + columnIndex);
+        filter = input.value.toUpperCase();
+        table = document.getElementById("dishesTable");
+        tr = table.getElementsByTagName("tr");
+        for (i = 1; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[columnIndex];
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function showHoverModal(content, button) {
+        var modal = document.getElementById('modal');
+        var modalContent = document.getElementById('modalContent');
+        modalContent.innerText = content;
+
+        var buttonRect = button.getBoundingClientRect();
+        modal.style.top = buttonRect.top + buttonRect.height + 10 + "px";
+        modal.style.left = buttonRect.left + "px";
+
+        modal.style.display = 'block';
+
+        modal.onmouseenter = function () {
+            modal.style.display = 'block';
+        }
+
+        modal.onmouseleave = function () {
+            closeModal();
+        }
+
+        button.onmouseleave = function () {
+            closeModal();
+        }
+    }
+
+
+    function closeModal() {
+        var modal = document.getElementById('modal');
+        modal.style.display = 'none';
+    }
+</script>

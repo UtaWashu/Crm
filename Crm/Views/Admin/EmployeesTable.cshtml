@@ -1,0 +1,177 @@
+﻿@model List<Crm.Domain.Models.Employees>
+@{
+    Layout = "";
+
+}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        .up-container {
+            width: 100%;
+            height: 90px;
+            background: blue;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        .left-container {
+            height: calc(100vh - 130px);
+            margin-top: 40px;
+            width: 200px;
+            background: blue;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 5px;
+        }
+
+            .btn:hover {
+                background-color: #45a049;
+            }
+
+        .test {
+            margin-left: 250px;
+            margin-top: -85vh;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="up-container">
+    </div>
+
+    <div class="left-container">
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="EmployeesTable">Сотрудники</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="EmployeeDiagramm">Статистика сотрудников</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Storages">Склад</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Invoice">Накладные</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Dishes">Меню</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Orders">Заказы</a>
+        <a class="btn btn-primary" asp-controller="Admin" asp-action="Metrics">Аналитика</a>
+        <a class="btn btn-primary" asp-controller="Home" asp-action="Login">Логин страница</a>
+    </div>
+    <div class="test">
+        <div>
+            <h2>Список сотрудников</h2>
+            <table class="table">
+                <thead> <tr> <th>Имя</th> <th>Логин</th> <th>Роль</th> </tr> </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Initials</td>
+                            <td>@item.Account.Login</td>
+                            <td>@item.Role.Title</td>
+                            <td>
+                                <button class="btn btn-danger deleteEmployee" data-id="@item.Id">Удалить</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div>
+                <button class="btn btn-primary" id="createEmployeeButton" data-toggle="modal" data-target="#createEmployeeModal">Создать сотрудника</button>
+            </div>
+
+            <div class="modal fade" id="createEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="createEmployeeModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createEmployeeModalLabel">Создать сотрудника</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="createEmployeeForm">
+                                <div class="form-group">
+                                    <label for="initials">Имя</label>
+                                    <input type="text" class="form-control" id="initials" name="initials">
+                                </div>
+                                <div class="form-group">
+                                    <label for="login">Логин</label>
+                                    <input type="text" class="form-control" id="login" name="login">
+                                </div>
+                                <div class="form-group">
+                                    <label for="roleId">Роль</label>
+                                    <select class="form-control" id="roleId" name="roleId">
+                                        <option value="2">Официант</option>
+                                        <option value="1">Администратор</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                            <button type="button" class="btn btn-primary" id="submitCreateEmployee">Создать</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="~/lib/jquery/dist/jquery.min.js"></script>
+        <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                $("#createEmployeeButton").click(function () {
+                    $("#createEmployeeModal").modal('show');
+                });
+
+                $("#submitCreateEmployee").click(function () {
+                    var initials = $("#initials").val();
+                    var login = $("#login").val();
+                    var roleId = $("#roleId").val();
+
+                    $.ajax({
+                        type: "POST",
+                        url: "/Admin/Create",
+                        data: { initials: initials, login: login, roleId: roleId },
+                        success: function (data) {
+                            $("#createEmployeeModal").modal('hide');
+                            location.reload();
+                        }
+                    });
+                });
+            });
+
+            $(".deleteEmployee").click(function () {
+                var employeeId = $(this).data("id");
+
+                $.ajax({
+                    type: "POST",
+                    url: "/Admin/Delete",
+                    data: { id: employeeId },
+                    success: function (data) {
+                        if (data.success) {
+                            location.reload();
+                        } else {
+                            alert(data.error);
+                        }
+                    }
+                });
+            });
+
+        </script>
+</body>
+</html>
